@@ -9,6 +9,7 @@ export type Product = {
   id: string;
   name: string;
   description: string;
+  category: string;
   shades: string[];
   price: number;
   imageUrl: string;
