@@ -8,7 +8,7 @@ import { users as mockUsers } from "@/lib/data";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (userId: string) => void;
+  login: (email: string, password: string, role: "agent" | "admin") => Promise<void>;
   logout: () => void;
 }
 
@@ -44,13 +44,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, loading, pathname, router]);
 
 
-  const login = (userId: string) => {
-    const userToLogin = mockUsers.find((u) => u.id === userId);
-    if (userToLogin) {
-      setUser(userToLogin);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToLogin));
-      router.push(userToLogin.role === 'admin' ? '/admin' : '/products');
-    }
+  const login = (email: string, password: string, role: "agent" | "admin"): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      // Simulate network delay
+      setTimeout(() => {
+        const userToLogin = mockUsers.find(
+          (u) => u.email.toLowerCase() === email.toLowerCase() && u.role === role
+        );
+
+        // NOTE: We are not checking the password, as it's not stored in mock data.
+        // In a real app, you would validate the password hash.
+        if (userToLogin) {
+          setUser(userToLogin);
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToLogin));
+          router.push(userToLogin.role === 'admin' ? '/admin' : '/products');
+          resolve();
+        } else {
+          reject(new Error("Invalid credentials or role mismatch."));
+        }
+      }, 500);
+    });
   };
 
   const logout = () => {
