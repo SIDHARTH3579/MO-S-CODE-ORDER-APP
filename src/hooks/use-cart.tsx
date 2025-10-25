@@ -12,9 +12,9 @@ import { useToast } from "./use-toast";
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: Product, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity: number, shade?: string) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   cartTotal: number;
   itemCount: number;
@@ -27,49 +27,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   const addToCart = useCallback(
-    (product: Product, quantity: number) => {
+    (product: Product, quantity: number, shade?: string) => {
       setCartItems((prevItems) => {
-        const existingItem = prevItems.find((item) => item.id === product.id);
+        const cartItemId = shade ? `${product.id}_${shade}` : product.id;
+        const existingItem = prevItems.find((item) => item.cartItemId === cartItemId);
+
         if (existingItem) {
           return prevItems.map((item) =>
-            item.id === product.id
+            item.cartItemId === cartItemId
               ? { ...item, quantity: item.quantity + quantity }
               : item
           );
         }
+
         return [
           ...prevItems,
           {
+            cartItemId,
             id: product.id,
             name: product.name,
             price: product.price,
             quantity,
             imageUrl: product.imageUrl,
+            shade,
           },
         ];
       });
       toast({
         title: "Added to cart",
-        description: `${quantity} x ${product.name}`,
+        description: `${quantity} x ${product.name}${shade ? ` (${shade})` : ''}`,
       });
     },
     [toast]
   );
 
-  const removeFromCart = useCallback((productId: string) => {
+  const removeFromCart = useCallback((cartItemId: string) => {
     setCartItems((prevItems) =>
-      prevItems.filter((item) => item.id !== productId)
+      prevItems.filter((item) => item.cartItemId !== cartItemId)
     );
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(cartItemId);
       return;
     }
     setCartItems((prevItems) =>
       prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
+        item.cartItemId === cartItemId ? { ...item, quantity } : item
       )
     );
   }, [removeFromCart]);

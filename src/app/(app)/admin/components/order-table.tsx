@@ -120,7 +120,7 @@ export function OrderTable({ orders }: { orders: Order[] }) {
               <TableCell className="font-medium">#{order.id.split('_')[1]}</TableCell>
               <TableCell>{order.userName}</TableCell>
               <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
-              <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+              <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
               <TableCell>
                 <Badge className={statusColors[order.status]}>{order.status}</Badge>
               </TableCell>
@@ -159,7 +159,7 @@ export function OrderTable({ orders }: { orders: Order[] }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Status Update</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to change the status of order #{selectedUpdate?.orderId.split('_')[1]} to{" "}
+              Are you sure you want to change the status of order #{selectedUpdate?.orderId.split('_')[1] ?? ''} to{" "}
               <strong>{selectedUpdate?.newStatus}</strong>? This may trigger a
               notification.
             </AlertDialogDescription>

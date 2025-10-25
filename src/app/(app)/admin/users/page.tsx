@@ -20,11 +20,35 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
 import type { User } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const { toast } = useToast();
+
+  const handleDeleteUser = () => {
+    if (userToDelete) {
+        setUsers(users.filter(u => u.id !== userToDelete.id));
+        toast({
+            title: "User Deleted",
+            description: `User "${userToDelete.name}" has been removed.`,
+        });
+        setUserToDelete(null);
+    }
+  };
   
   // TODO: Add user creation/editing logic
 
@@ -75,7 +99,7 @@ export default function AdminUsersPage() {
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem>Edit</DropdownMenuItem>
-                                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                        <DropdownMenuItem className="text-destructive" onClick={() => setUserToDelete(user)}>Delete</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                              </TableCell>
@@ -85,6 +109,21 @@ export default function AdminUsersPage() {
             </Table>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user "{userToDelete?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

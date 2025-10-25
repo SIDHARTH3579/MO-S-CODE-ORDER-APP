@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
-  Badge,
   ShoppingCart,
   Trash2,
   Sidebar as SidebarIcon,
@@ -69,6 +68,7 @@ function CartSheet() {
         productName: item.name,
         quantity: item.quantity,
         price: item.price,
+        shade: item.shade,
       })),
       total: cartTotal,
       status: "Pending" as const,
@@ -111,7 +111,7 @@ function CartSheet() {
             <div className="flex-1 overflow-y-auto">
               <div className="flex flex-col gap-4 p-6">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4">
+                  <div key={item.cartItemId} className="flex items-center gap-4">
                     <Image
                       src={item.imageUrl}
                       alt={item.name}
@@ -121,8 +121,9 @@ function CartSheet() {
                     />
                     <div className="flex-1">
                       <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        ${item.price.toFixed(2)}
+                       <p className="text-sm text-muted-foreground">
+                        {item.shade ? `Shade: ${item.shade} | ` : ''}
+                        ₹{item.price.toFixed(2)}
                       </p>
                     </div>
                     <Input
@@ -130,14 +131,14 @@ function CartSheet() {
                       min="1"
                       value={item.quantity}
                       onChange={(e) =>
-                        updateQuantity(item.id, parseInt(e.target.value))
+                        updateQuantity(item.cartItemId, parseInt(e.target.value))
                       }
                       className="w-16"
                     />
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(item.cartItemId)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -150,7 +151,7 @@ function CartSheet() {
               <div className="flex w-full flex-col gap-4">
                 <div className="flex justify-between font-semibold">
                   <span>Subtotal</span>
-                  <span>${cartTotal.toFixed(2)}</span>
+                  <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
                 <Button className="w-full" onClick={handleCreateOrder}>
                   Create Order

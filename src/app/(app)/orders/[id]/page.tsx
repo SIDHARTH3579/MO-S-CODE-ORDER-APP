@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { orders } from "@/lib/data";
 import { products } from "@/lib/data";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Order, OrderStatus } from "@/types";
+import type { Order, OrderItem, OrderStatus } from "@/types";
 import Image from "next/image";
 import Link from 'next/link';
 import { ArrowLeft } from "lucide-react";
@@ -72,19 +72,24 @@ export default function OrderDetailPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {order.items.map((item) => {
+                        {order.items.map((item: OrderItem, index) => {
                             const product = products.find(p => p.id === item.productId);
                             return (
-                                <TableRow key={item.productId}>
+                                <TableRow key={`${item.productId}-${index}`}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Image src={product?.imageUrl ?? ''} alt={item.productName} width={40} height={40} className="rounded-md" />
-                                            <span className="font-medium">{item.productName}</span>
+                                            <div>
+                                                <span className="font-medium">{item.productName}</span>
+                                                {item.shade && (
+                                                    <p className="text-xs text-muted-foreground">{item.shade}</p>
+                                                )}
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>{item.quantity}</TableCell>
-                                    <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">₹{(item.price * item.quantity).toFixed(2)}</TableCell>
                                 </TableRow>
                             );
                         })}
@@ -114,8 +119,17 @@ export default function OrderDetailPage() {
                     <Separator/>
                      <div className="flex justify-between text-lg font-bold">
                         <span>Total</span>
-                        <span>${order.total.toFixed(2)}</span>
+                        <span>₹{order.total.toFixed(2)}</span>
                     </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Customer</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="font-medium">{order.userName}</p>
+                    {/* In a real app, customer details would be more extensive */}
                 </CardContent>
             </Card>
         </div>

@@ -28,6 +28,7 @@ export type OrderItem = {
   productName: string;
   quantity: number;
   price: number;
+  shade?: string;
 };
 
 export type Order = {
@@ -42,9 +43,11 @@ export type Order = {
 };
 
 export type CartItem = {
-  id: string;
+  cartItemId: string; // e.g., product.id or product.id_shade
+  id: string; // product.id
   name: string;
   price: number;
   quantity: number;
   imageUrl: string;
+  shade?: string;
 };

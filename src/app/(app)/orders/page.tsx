@@ -5,9 +5,6 @@ import { orders } from "@/lib/data";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Table,
@@ -66,7 +63,7 @@ export default function OrdersPage() {
                             {order.status}
                         </Badge>
                         </TableCell>
-                        <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
                         <TableCell className="text-right">
                           <Button asChild variant="ghost" size="icon">
                             <Link href={`/orders/${order.id}`}>

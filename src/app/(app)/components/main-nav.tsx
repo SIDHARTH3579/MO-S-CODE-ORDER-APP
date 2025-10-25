@@ -12,7 +12,6 @@ import {
   Package,
   History,
   Users,
-  Shield,
 } from "lucide-react";
 
 type MainNavProps = {
@@ -64,22 +63,6 @@ export function MainNav({ userRole }: MainNavProps) {
           </Link>
         </SidebarMenuItem>
       ))}
-      {userRole === 'agent' && (
-         <SidebarMenuItem>
-           <Link href="/admin"
-              className="opacity-50 cursor-not-allowed"
-              onClick={(e) => e.preventDefault()}
-            >
-             <SidebarMenuButton
-              isActive={checkActive("/admin")}
-              tooltip="Admin View (Disabled)"
-             >
-               <Shield />
-               <span>Admin View</span>
-             </SidebarMenuButton>
-           </Link>
-         </SidebarMenuItem>
-      )}
     </SidebarMenu>
   );
 }
