@@ -14,20 +14,10 @@ export default function Home() {
       if (!user) {
         router.push("/login");
       } else {
-        router.push(user.role === 'admin' ? '/admin' : '/');
+        router.push(user.role === 'admin' ? '/admin' : '/products');
       }
     }
   }, [user, loading, router]);
-  
-  // As this page is now inside (app) group, it will be the default page for authenticated users.
-  // We check the role and redirect if necessary.
-  // The actual product catalog is now at /products
-  useEffect(() => {
-    if (user) {
-      router.push('/products');
-    }
-  }, [user, router]);
-
 
   return (
     <div className="flex h-screen w-full items-center justify-center">
