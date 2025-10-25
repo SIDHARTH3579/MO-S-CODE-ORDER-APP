@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "prod_001",
+      "description": "A vibrant and long-lasting lipstick",
+      "imageUrl": "https://images.unsplash.com/photo-1725792824896-1f72d0fcc997?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsaXBzdGljayUyMG1ha2V1cHxlbnwwfHx8fDE3NjE0MDY5NTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lipstick makeup"
+    },
+    {
+      "id": "prod_002",
+      "description": "A high-coverage foundation for a flawless finish",
+      "imageUrl": "https://images.unsplash.com/photo-1560879311-370fd4561a0d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmb3VuZGF0aW9uJTIwbWFrZXVwfGVufDB8fHx8MTc2MTQwNDkxN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "foundation makeup"
+    },
+    {
+      "id": "prod_003",
+      "description": "A lengthening and volumizing mascara",
+      "imageUrl": "https://images.unsplash.com/photo-1631120581498-4e2ad6c0ce3a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtYXNjYXJhJTIwbWFrZXVwfGVufDB8fHx8MTc2MTQwNjk1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mascara makeup"
+    },
+    {
+      "id": "prod_004",
+      "description": "A palette of neutral eyeshadows for everyday wear",
+      "imageUrl": "https://images.unsplash.com/photo-1625093525885-282384697917?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxleWVzaGFkb3clMjBwYWxldHRlfGVufDB8fHx8MTc2MTMyMzI2MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "eyeshadow palette"
+    },
+    {
+      "id": "prod_005",
+      "description": "A rosy blush for a natural-looking flush",
+      "imageUrl": "https://images.unsplash.com/photo-1632322781997-8fb327c7ac9b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxibHVzaCUyMG1ha2V1cHxlbnwwfHx8fDE3NjE0MDY5NTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blush makeup"
+    },
+    {
+      "id": "prod_006",
+      "description": "A fine-tipped eyeliner for precise application",
+      "imageUrl": "https://images.unsplash.com/photo-1631120629198-777872b283f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxleWVsaW5lciUyMG1ha2V1cHxlbnwwfHx8fDE3NjE0MDY5NTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "eyeliner makeup"
+    },
+    {
+      "id": "prod_007",
+      "description": "A hydrating primer to prep the skin for makeup",
+      "imageUrl": "https://images.unsplash.com/photo-1734120273696-596f96658db9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmYWNlJTIwcHJpbWVyfGVufDB8fHx8MTc2MTQwNjk1OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "face primer"
+    },
+    {
+      "id": "prod_008",
+      "description": "A setting spray to lock in your look all day",
+      "imageUrl": "https://images.unsplash.com/photo-1500162146645-0640f78949ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzZXR0aW5nJTIwc3ByYXl8ZW58MHx8fHwxNzYxMzEyNzQ4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "setting spray"
+    }
+  ]
 }
