@@ -1,8 +1,9 @@
 "use server";
 
 import { generateOrderUpdateEmail, OrderUpdateEmailOutput } from "@/ai/flows/order-update-email-alerts";
+import { importProductsFlow, ImportProductsOutput } from "@/ai/flows/import-products-flow";
 import { orders } from "@/lib/data";
-import { Order, OrderStatus } from "@/types";
+import { Order, OrderStatus, Product } from "@/types";
 import { revalidatePath } from "next/cache";
 
 export async function updateOrderStatusAction(
@@ -44,4 +45,24 @@ export async function updateOrderStatusAction(
     console.error("AI Flow failed:", e);
     return { error: "Failed to generate email alert." };
   }
+}
+
+export async function importProductsAction(csvData: string): Promise<{ products?: Product[], error?: string }> {
+    try {
+        const result = await importProductsFlow({ csvData });
+        if (result.products) {
+             const newProducts: Product[] = result.products.map(p => ({
+                ...p,
+                id: `prod_${String(Math.random()).slice(2, 8)}`,
+                imageUrl: `https://picsum.photos/seed/${String(Math.random()).slice(2, 8)}/400/400`,
+                imageHint: 'product photo',
+             }));
+             revalidatePath('/admin/products');
+             return { products: newProducts };
+        }
+        return { error: "Failed to parse products from file." };
+    } catch(e) {
+        console.error("Import products flow failed:", e);
+        return { error: "An unexpected error occurred during import." };
+    }
 }

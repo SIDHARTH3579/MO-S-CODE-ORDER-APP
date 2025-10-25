@@ -30,18 +30,31 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription
+} from "@/components/ui/dialog"
 import { Badge } from '@/components/ui/badge';
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { UserForm } from './components/user-form';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const { toast } = useToast();
 
   const handleDeleteUser = () => {
     if (userToDelete) {
-        setUsers(users.filter(u => u.id !== userToDelete.id));
+        // In a real app, this would be an API call
+        const updatedUsers = users.filter(u => u.id !== userToDelete.id);
+        setUsers(updatedUsers);
+        initialUsers.splice(initialUsers.findIndex(u => u.id === userToDelete.id), 1); // Mutate mock
         toast({
             title: "User Deleted",
             description: `User "${userToDelete.name}" has been removed.`,
@@ -50,7 +63,36 @@ export default function AdminUsersPage() {
     }
   };
   
-  // TODO: Add user creation/editing logic
+  const handleFormSubmit = (userData: Omit<User, 'id'> & { id?: string }) => {
+    if (userData.id) {
+        // Edit existing user
+        const updatedUsers = users.map(u => u.id === userData.id ? { ...u, ...userData } : u);
+        setUsers(updatedUsers);
+        const index = initialUsers.findIndex(u => u.id === userData.id);
+        if (index !== -1) {
+            initialUsers[index] = { ...initialUsers[index], ...userData } as User;
+        }
+        toast({
+            title: "User Updated",
+            description: `User "${userData.name}" has been updated.`,
+        });
+    } else {
+        // Add new user
+        const newUser: User = {
+            ...userData,
+            id: `user_${String(Math.random()).slice(2, 8)}`,
+        } as User;
+         const updatedUsers = [...users, newUser];
+        setUsers(updatedUsers);
+        initialUsers.push(newUser);
+        toast({
+            title: "User Added",
+            description: `User "${newUser.name}" has been created.`,
+        });
+    }
+    setIsFormOpen(false);
+    setUserToEdit(undefined);
+  };
 
   return (
     <div className="container mx-auto">
@@ -59,7 +101,7 @@ export default function AdminUsersPage() {
           <h1 className="text-3xl font-bold tracking-tight font-headline">Manage Users</h1>
           <p className="text-muted-foreground">Control user roles and access permissions.</p>
         </div>
-        <Button>
+        <Button onClick={() => {setUserToEdit(undefined); setIsFormOpen(true);}}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add User
         </Button>
       </div>
@@ -98,7 +140,7 @@ export default function AdminUsersPage() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => { setUserToEdit(user); setIsFormOpen(true);}}>Edit</DropdownMenuItem>
                                         <DropdownMenuItem className="text-destructive" onClick={() => setUserToDelete(user)}>Delete</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -124,6 +166,22 @@ export default function AdminUsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+       <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) setUserToEdit(undefined); setIsFormOpen(open);}}>
+         <DialogContent>
+           <DialogHeader>
+             <DialogTitle>{userToEdit ? 'Edit User' : 'Add New User'}</DialogTitle>
+             <DialogDescription>
+                {userToEdit ? 'Update the details for this user.' : 'Fill in the form to create a new user.'}
+             </DialogDescription>
+           </DialogHeader>
+           <UserForm
+             user={userToEdit}
+             onSubmit={handleFormSubmit}
+             onCancel={() => { setIsFormOpen(false); setUserToEdit(undefined); }}
+            />
+         </DialogContent>
+       </Dialog>
     </div>
   );
 }

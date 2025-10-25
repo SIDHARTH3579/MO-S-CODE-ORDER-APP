@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useTransition } from 'react'
 import { products as initialProducts } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, MoreHorizontal, Upload } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Upload, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -37,21 +37,31 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog"
 import Image from "next/image";
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { ProductForm } from './components/product-form';
+import { importProductsAction } from '@/app/actions';
+import { Input } from '@/components/ui/input';
 
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productToEdit, setProductToEdit] = useState<Product | undefined>(undefined);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isImporting, startImportTransition] = useTransition();
   const { toast } = useToast();
   
   const handleDeleteProduct = () => {
     if (productToDelete) {
-        setProducts(products.filter(p => p.id !== productToDelete.id));
+        // In a real app, this would be an API call
+        const updatedProducts = products.filter(p => p.id !== productToDelete.id)
+        setProducts(updatedProducts);
+        initialProducts.splice(initialProducts.findIndex(p => p.id === productToDelete.id), 1); // Mutate mock
         toast({
             title: "Product Deleted",
             description: `"${productToDelete.name}" has been removed from the catalog.`,
@@ -60,7 +70,71 @@ export default function AdminProductsPage() {
     }
   };
   
-  // TODO: Add product creation/editing logic
+  const handleFormSubmit = (productData: Omit<Product, 'id' | 'imageUrl' | 'imageHint'> & { id?: string }) => {
+    if (productData.id) {
+      // Edit existing product
+      const updatedProducts = products.map(p => p.id === productData.id ? { ...p, ...productData } : p);
+      setProducts(updatedProducts);
+      
+      const index = initialProducts.findIndex(p => p.id === productData.id);
+      if (index !== -1) {
+        initialProducts[index] = { ...initialProducts[index], ...productData };
+      }
+
+      toast({
+        title: "Product Updated",
+        description: `"${productData.name}" has been updated.`,
+      });
+    } else {
+      // Add new product
+      const newProduct: Product = {
+        ...productData,
+        id: `prod_${String(Math.random()).slice(2, 8)}`,
+        // For new products, we'll use a placeholder. Image upload would be a next step.
+        imageUrl: `https://picsum.photos/seed/${String(Math.random()).slice(2, 8)}/400/400`, 
+        imageHint: 'product photo',
+      };
+      const updatedProducts = [...products, newProduct]
+      setProducts(updatedProducts);
+      initialProducts.push(newProduct);
+      toast({
+        title: "Product Added",
+        description: `"${newProduct.name}" has been added to the catalog.`,
+      });
+    }
+    setIsFormOpen(false);
+    setProductToEdit(undefined);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const content = e.target?.result as string;
+        startImportTransition(async () => {
+            const result = await importProductsAction(content);
+            if (result.error) {
+                toast({
+                    variant: "destructive",
+                    title: "Import Failed",
+                    description: result.error,
+                });
+            } else {
+                // Here you would merge new products, for simplicity we replace them
+                setProducts(result.products!);
+                initialProducts.splice(0, initialProducts.length, ...result.products!);
+                toast({
+                    title: "Import Successful",
+                    description: `${result.products?.length} products have been imported.`,
+                });
+            }
+        });
+    };
+    reader.readAsText(file);
+  };
+
 
   return (
     <div className="container mx-auto">
@@ -80,23 +154,21 @@ export default function AdminProductsPage() {
                     <DialogHeader>
                         <DialogTitle>Import Products</DialogTitle>
                         <DialogDescription>
-                            This feature allows you to bulk-upload products from a CSV or Excel file.
+                            Bulk-upload products from a CSV file. The file should have `name`, `description`, `category`, `price`, and `shades` columns.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="py-4 text-sm">
-                        <p>To import products, please format your file with the following columns:</p>
-                        <ul className="list-disc pl-5 mt-2 space-y-1 text-muted-foreground">
-                            <li><code className="font-mono">name</code> (Text)</li>
-                            <li><code className="font-mono">description</code> (Text)</li>
-                            <li><code className="font-mono">category</code> (Text)</li>
-                            <li><code className="font-mono">price</code> (Number)</li>
-                            <li><code className="font-mono">shades</code> (Comma-separated list, e.g., "shade 1,shade 2")</li>
-                        </ul>
-                         <p className="mt-4 text-muted-foreground">This is a placeholder. Functionality to upload a file is not yet implemented.</p>
+                    <div className="py-4 text-sm space-y-4">
+                       <Input type="file" accept=".csv" onChange={handleFileChange} disabled={isImporting} />
+                       {isImporting && (
+                           <div className="flex items-center text-muted-foreground">
+                               <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                               Processing file, please wait...
+                           </div>
+                       )}
                     </div>
                 </DialogContent>
             </Dialog>
-            <Button>
+            <Button onClick={() => { setProductToEdit(undefined); setIsFormOpen(true)}}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Product
             </Button>
         </div>
@@ -150,7 +222,7 @@ export default function AdminProductsPage() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => { setProductToEdit(product); setIsFormOpen(true);}}>Edit</DropdownMenuItem>
                                         <DropdownMenuItem className="text-destructive" onClick={() => setProductToDelete(product)}>
                                             Delete
                                         </DropdownMenuItem>
@@ -178,6 +250,22 @@ export default function AdminProductsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+       <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) setProductToEdit(undefined); setIsFormOpen(open);}}>
+         <DialogContent>
+           <DialogHeader>
+             <DialogTitle>{productToEdit ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+             <DialogDescription>
+                {productToEdit ? 'Update the details of your product.' : 'Fill in the form to add a new product to the catalog.'}
+             </DialogDescription>
+           </DialogHeader>
+           <ProductForm
+             product={productToEdit}
+             onSubmit={handleFormSubmit}
+             onCancel={() => { setIsFormOpen(false); setProductToEdit(undefined); }}
+            />
+         </DialogContent>
+       </Dialog>
     </div>
   );
 }
