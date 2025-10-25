@@ -53,7 +53,7 @@ export function MainNav({ userRole }: MainNavProps) {
     <SidebarMenu>
       {routes.map((route) => (
         <SidebarMenuItem key={route.href}>
-          <Link href={route.href} legacyBehavior passHref>
+          <Link href={route.href}>
             <SidebarMenuButton
               isActive={checkActive(route.href)}
               tooltip={route.label}
@@ -66,12 +66,13 @@ export function MainNav({ userRole }: MainNavProps) {
       ))}
       {userRole === 'agent' && (
          <SidebarMenuItem>
-           <Link href="/admin" legacyBehavior passHref>
+           <Link href="/admin"
+              className="opacity-50 cursor-not-allowed"
+              onClick={(e) => e.preventDefault()}
+            >
              <SidebarMenuButton
               isActive={checkActive("/admin")}
               tooltip="Admin View (Disabled)"
-              className="opacity-50 cursor-not-allowed"
-              onClick={(e) => e.preventDefault()}
              >
                <Shield />
                <span>Admin View</span>
