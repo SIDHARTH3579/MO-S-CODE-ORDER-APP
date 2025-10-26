@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/components/ui/sidebar";
 import { orders } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
+import { NewOrderNotification } from "../admin/components/new-order-notification";
 
 export function AppHeader() {
   const { toggleSidebar } = useSidebar();
@@ -39,6 +40,7 @@ export function AppHeader() {
          <span className="sr-only">Toggle Menu</span>
        </Button>
        <div className="flex-1" />
+       {user?.role === 'admin' && <NewOrderNotification />}
        {user?.role === 'agent' && <CartSheet />}
      </header>
   );
@@ -81,8 +83,15 @@ function CartSheet() {
     
     toast({
       title: "Order Submitted!",
-      description: `Your order #${newOrder.id} has been placed.`,
+      description: `Your order #${newOrder.id.split('_')[1]} has been placed.`,
     });
+    
+    // Simulate a notification for the admin
+    localStorage.setItem('new_order_notification', JSON.stringify({
+        orderId: newOrder.id,
+        agentName: user.name,
+        timestamp: new Date().getTime(),
+    }));
     
     clearCart();
     // Potentially close the sheet here
