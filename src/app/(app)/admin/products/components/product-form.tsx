@@ -24,6 +24,8 @@ const productFormSchema = z.object({
   category: z.string().min(2, "Category is required."),
   price: z.coerce.number().positive("Price must be a positive number."),
   shades: z.array(z.object({ value: z.string().min(1, "Shade name cannot be empty.") })),
+  imageUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
+  imageHint: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -44,6 +46,8 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
       category: product?.category || "",
       price: product?.price || 0,
       shades: product?.shades.map(s => ({ value: s })) || [],
+      imageUrl: product?.imageUrl || "",
+      imageHint: product?.imageHint || "",
     },
   });
 
@@ -113,6 +117,32 @@ export function ProductForm({ product, onSubmit, onCancel }: ProductFormProps) {
             )}
             />
         </div>
+        <FormField
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image URL</FormLabel>
+              <FormControl>
+                <Input placeholder="https://your-image-url.com/image.png" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="imageHint"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image Hint</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. 'lipstick makeup'" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div>
             <FormLabel>Shades</FormLabel>
             <div className="space-y-2 mt-2">

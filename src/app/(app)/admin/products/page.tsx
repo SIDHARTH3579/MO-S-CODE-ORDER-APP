@@ -70,29 +70,39 @@ export default function AdminProductsPage() {
     }
   };
   
-  const handleFormSubmit = (productData: Omit<Product, 'id' | 'imageUrl' | 'imageHint'> & { id?: string }) => {
-    if (productData.id) {
+  const handleFormSubmit = (productData: Omit<Product, 'id' | 'imageUrl' | 'imageHint' | 'shades'> & { id?: string, imageUrl?: string, imageHint?: string, shades: { value: string }[] }) => {
+    const submittedProduct = {
+      ...productData,
+      shades: productData.shades.map(s => s.value),
+    };
+    
+    if (submittedProduct.id) {
       // Edit existing product
-      const updatedProducts = products.map(p => p.id === productData.id ? { ...p, ...productData } : p);
+      const updatedProduct = {
+        ...products.find(p => p.id === submittedProduct.id)!,
+        ...submittedProduct,
+        imageUrl: submittedProduct.imageUrl || products.find(p => p.id === submittedProduct.id)?.imageUrl,
+      };
+
+      const updatedProducts = products.map(p => p.id === submittedProduct.id ? updatedProduct : p);
       setProducts(updatedProducts);
       
-      const index = initialProducts.findIndex(p => p.id === productData.id);
+      const index = initialProducts.findIndex(p => p.id === submittedProduct.id);
       if (index !== -1) {
-        initialProducts[index] = { ...initialProducts[index], ...productData };
+        initialProducts[index] = updatedProduct;
       }
 
       toast({
         title: "Product Updated",
-        description: `"${productData.name}" has been updated.`,
+        description: `"${submittedProduct.name}" has been updated.`,
       });
     } else {
       // Add new product
       const newProduct: Product = {
-        ...productData,
+        ...submittedProduct,
         id: `prod_${String(Math.random()).slice(2, 8)}`,
-        // For new products, we'll use a placeholder. Image upload would be a next step.
-        imageUrl: `https://picsum.photos/seed/${String(Math.random()).slice(2, 8)}/400/400`, 
-        imageHint: 'product photo',
+        imageUrl: submittedProduct.imageUrl || `https://picsum.photos/seed/${String(Math.random()).slice(2, 8)}/400/400`, 
+        imageHint: submittedProduct.imageHint || 'product photo',
       };
       const updatedProducts = [...products, newProduct]
       setProducts(updatedProducts);
