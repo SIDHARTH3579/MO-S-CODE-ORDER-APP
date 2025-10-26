@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -120,8 +121,8 @@ export function ProductCard({ product }: { product: Product }) {
         {hasShades ? (
             <div className="py-4 space-y-4 max-h-60 overflow-y-auto">
                 <h4 className="font-semibold">Available Shades:</h4>
-                {product.shades.map(shade => (
-                    <div key={shade} className="flex items-center justify-between gap-4">
+                {product.shades.map((shade, index) => (
+                    <div key={`${shade}-${index}`} className="flex items-center justify-between gap-4">
                        <Badge variant="secondary">{shade}</Badge>
                        <div className="flex items-center gap-2">
                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(shade, (shadeQuantities[shade] || 0) - 1)}>
