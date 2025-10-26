@@ -3,30 +3,10 @@
  * @fileOverview A flow for importing products from a CSV file.
  *
  * - importProductsFlow - A function that parses CSV data and returns structured product information.
- * - ImportProductsInput - The input type for the importProductsFlow function.
- * - ImportProductsOutput - The return type for the importProductsFlow function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-export const ImportProductsInputSchema = z.object({
-  csvData: z.string().describe('The full CSV content as a string.'),
-});
-export type ImportProductsInput = z.infer<typeof ImportProductsInputSchema>;
-
-const ProductSchema = z.object({
-    name: z.string().describe('The name of the product.'),
-    description: z.string().describe('A brief description of the product.'),
-    category: z.string().describe('The product category (e.g., Lipstick, Foundation).'),
-    price: z.number().describe('The price of the product.'),
-    shades: z.array(z.string()).describe('A list of available shades for the product. Can be an empty array if not applicable.'),
-});
-
-export const ImportProductsOutputSchema = z.object({
-  products: z.array(ProductSchema).describe('An array of successfully parsed product objects.'),
-});
-export type ImportProductsOutput = z.infer<typeof ImportProductsOutputSchema>;
+import { ImportProductsInputSchema, ImportProductsOutputSchema, type ImportProductsInput, type ImportProductsOutput } from '@/types';
 
 export async function importProductsFlow(input: ImportProductsInput): Promise<ImportProductsOutput> {
   return importProductsGenkitFlow(input);
