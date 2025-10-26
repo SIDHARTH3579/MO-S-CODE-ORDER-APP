@@ -16,13 +16,18 @@ import {
   ShoppingCart,
   Trash2,
   Sidebar as SidebarIcon,
+  Loader2,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/components/ui/sidebar";
-import { orders } from "@/lib/data";
+import { orders, users } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import { NewOrderNotification } from "../admin/components/new-order-notification";
+import { useState, useTransition } from "react";
+import { notifyAdminOfNewOrderAction } from "@/app/actions";
+import { NewOrderEmailOutput } from "@/ai/flows/new-order-email-alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export function AppHeader() {
   const { toggleSidebar } = useSidebar();
@@ -57,6 +62,10 @@ function CartSheet() {
   } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+  const [aiResult, setAiResult] = useState<NewOrderEmailOutput | null>(null);
+  const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
+
 
   const handleCreateOrder = () => {
     if (!user || cartItems.length === 0) return;
@@ -77,8 +86,6 @@ function CartSheet() {
       date: new Date().toISOString(),
     };
 
-    // This is where you would typically send the order to your backend.
-    // For this demo, we'll just add it to our mock data array.
     orders.unshift(newOrder);
     
     toast({
@@ -86,19 +93,36 @@ function CartSheet() {
       description: `Your order #${newOrder.id.split('_')[1]} has been placed.`,
     });
     
-    // Simulate a notification for the admin
+    // In-browser notification for admin
     localStorage.setItem('new_order_notification', JSON.stringify({
         orderId: newOrder.id,
         agentName: user.name,
         timestamp: new Date().getTime(),
     }));
+
+    startTransition(async () => {
+      const admin = users.find(u => u.role === 'admin');
+      if (admin) {
+        const result = await notifyAdminOfNewOrderAction(newOrder, admin.email);
+        if ("error" in result) {
+            toast({
+                variant: "destructive",
+                title: "Failed to notify admin",
+                description: result.error
+            });
+        } else {
+            setAiResult(result);
+            setIsAiDialogOpen(true);
+        }
+      }
+    });
     
     clearCart();
-    // Potentially close the sheet here
   };
 
 
   return (
+    <>
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="relative">
@@ -162,8 +186,8 @@ function CartSheet() {
                   <span>Subtotal</span>
                   <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
-                <Button className="w-full" onClick={handleCreateOrder}>
-                  Create Order
+                <Button className="w-full" onClick={handleCreateOrder} disabled={isPending}>
+                  {isPending ? <Loader2 className="animate-spin" /> : 'Create Order'}
                 </Button>
               </div>
             </SheetFooter>
@@ -179,5 +203,31 @@ function CartSheet() {
         )}
       </SheetContent>
     </Sheet>
+    <Dialog open={isAiDialogOpen} onOpenChange={setIsAiDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Admin Notification Sent</DialogTitle>
+                <DialogDescription>
+                    The AI has generated the following email draft to notify the admin of the new order.
+                </DialogDescription>
+            </DialogHeader>
+            {aiResult && (
+                <div className="space-y-4 text-sm">
+                    <div>
+                        <p className="font-semibold">Email Subject</p>
+                        <p className="rounded-md border bg-muted/50 p-2">{aiResult.emailSubject}</p>
+                    </div>
+                    <div>
+                        <p className="font-semibold">Email Body</p>
+                        <p className="whitespace-pre-wrap rounded-md border bg-muted/50 p-4 font-code text-xs leading-relaxed">{aiResult.emailBody}</p>
+                    </div>
+                </div>
+            )}
+            <DialogFooter>
+                <Button onClick={() => setIsAiDialogOpen(false)}>Close</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { generateOrderUpdateEmail, OrderUpdateEmailOutput } from "@/ai/flows/order-update-email-alerts";
+import { notifyAdminOfNewOrderAction as notifyAdminOfNewOrderActionFlow, generateNewOrderEmail, NewOrderEmailOutput } from "@/ai/flows/new-order-email-alert";
 import { importProductsFlow } from "@/ai/flows/import-products-flow";
 import { importUsersFlow } from "@/ai/flows/import-users-flow";
 import { orders } from "@/lib/data";
@@ -84,5 +85,21 @@ export async function importUsersAction(csvData: string): Promise<{ users?: User
     } catch(e) {
         console.error("Import users flow failed:", e);
         return { error: "An unexpected error occurred during import." };
+    }
+}
+
+export async function notifyAdminOfNewOrderAction(
+    order: Order,
+    adminEmail: string
+): Promise<NewOrderEmailOutput | { error: string }> {
+    try {
+        const emailResult = await generateNewOrderEmail({
+            order,
+            adminEmail,
+        });
+        return emailResult;
+    } catch (e) {
+        console.error("Notify admin flow failed:", e);
+        return { error: "Failed to generate admin notification." };
     }
 }
