@@ -191,7 +191,7 @@ export function OrderTable({ orders }: { orders: Order[] }) {
                     </div>
                      <div className="col-span-2">
                         <p className="font-semibold">Email Template</p>
-                        <p className="font-mono text-xs"><Badge variant="outline">{aiResult.emailTemplate}</Badge></p>
+                        <div className="font-mono text-xs"><Badge variant="outline">{aiResult.emailTemplate}</Badge></div>
                     </div>
                 </div>
 
