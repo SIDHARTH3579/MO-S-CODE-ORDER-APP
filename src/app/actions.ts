@@ -35,6 +35,7 @@ export async function updateOrderStatusAction(
     // Revalidate the admin page to show the updated status
     revalidatePath("/admin");
     revalidatePath(`/orders/${orderId}`);
+    revalidatePath(`/admin/orders/${orderId}`);
     revalidatePath('/orders');
 
 

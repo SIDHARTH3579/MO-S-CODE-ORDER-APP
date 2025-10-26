@@ -36,11 +36,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import type { Order, OrderStatus } from "@/types";
 import { updateOrderStatusAction } from "@/app/actions";
 import type { OrderUpdateEmailOutput } from "@/ai/flows/order-update-email-alerts";
 import { useToast } from "@/hooks/use-toast";
+import Link from 'next/link';
+
 
 const statuses: OrderStatus[] = [
   "Pending",
@@ -112,6 +114,7 @@ export function OrderTable({ orders }: { orders: Order[] }) {
             <TableHead className="text-right">Total</TableHead>
             <TableHead>Current Status</TableHead>
             <TableHead>Update Status</TableHead>
+            <TableHead><span className="sr-only">View</span></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -143,6 +146,14 @@ export function OrderTable({ orders }: { orders: Order[] }) {
                     ))}
                   </SelectContent>
                 </Select>
+              </TableCell>
+              <TableCell>
+                  <Button asChild variant="ghost" size="icon">
+                      <Link href={`/admin/orders/${order.id}`}>
+                          <ArrowRight className="h-4 w-4" />
+                          <span className="sr-only">View Order</span>
+                      </Link>
+                  </Button>
               </TableCell>
             </TableRow>
           ))}
