@@ -1,4 +1,5 @@
-import { orders } from "@/lib/data";
+"use client";
+
 import {
   Card,
   CardContent,
@@ -7,8 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { OrderTable } from "./components/order-table";
+import { useOrders } from "@/hooks/use-orders";
 
 export default function AdminDashboardPage() {
+  const { orders } = useOrders();
   return (
     <div className="container mx-auto">
       <div className="mb-8">

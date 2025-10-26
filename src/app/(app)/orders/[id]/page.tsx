@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { orders } from "@/lib/data";
+import { useOrders } from "@/hooks/use-orders";
 import { products } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ const statusColors: Record<OrderStatus, string> = {
 export default function OrderDetailPage() {
   const params = useParams();
   const orderId = params.id as string;
+  const { orders } = useOrders();
   const order = orders.find((o) => o.id === orderId) as Order | undefined;
 
   if (!order) {

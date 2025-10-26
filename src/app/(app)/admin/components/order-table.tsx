@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
+import { useOrders } from "@/hooks/use-orders";
 import {
   Table,
   TableBody,
@@ -60,12 +61,13 @@ const statusColors: Record<OrderStatus, string> = {
   Cancelled: "bg-red-500/20 text-red-700 border-red-500/30",
 };
 
-export function OrderTable({ orders }: { orders: Order[] }) {
+export function OrderTable({ initialOrders }: { orders: Order[] }) {
+  const { orders, updateOrderStatus } = useOrders();
   const [isPending, startTransition] = useTransition();
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [aiResultDialogOpen, setAiResultDialogOpen] = useState(false);
   const [selectedUpdate, setSelectedUpdate] = useState<{
-    orderId: string;
+    order: Order;
     newStatus: OrderStatus;
   } | null>(null);
   const [aiResult, setAiResult] = useState<OrderUpdateEmailOutput | null>(null);
@@ -73,22 +75,23 @@ export function OrderTable({ orders }: { orders: Order[] }) {
   
   const sortedOrders = [...orders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-
   const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
     const order = orders.find((o) => o.id === orderId);
     if (order && order.status !== newStatus) {
-      setSelectedUpdate({ orderId, newStatus });
+      setSelectedUpdate({ order, newStatus });
       setConfirmDialogOpen(true);
     }
   };
 
   const handleConfirmUpdate = () => {
     if (!selectedUpdate) return;
+    const { order, newStatus } = selectedUpdate;
+
     setConfirmDialogOpen(false);
     startTransition(async () => {
       const result = await updateOrderStatusAction(
-        selectedUpdate.orderId,
-        selectedUpdate.newStatus
+        order,
+        newStatus
       );
       if ("error" in result) {
         toast({
@@ -97,6 +100,8 @@ export function OrderTable({ orders }: { orders: Order[] }) {
           description: result.error,
         });
       } else {
+        // Optimistically update the UI
+        updateOrderStatus(order.id, newStatus);
         setAiResult(result);
         setAiResultDialogOpen(true);
       }
@@ -170,7 +175,7 @@ export function OrderTable({ orders }: { orders: Order[] }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Status Update</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to change the status of order #{selectedUpdate?.orderId.split('_')[1] ?? ''} to{" "}
+              Are you sure you want to change the status of order #{selectedUpdate?.order.id.split('_')[1] ?? ''} to{" "}
               <strong>{selectedUpdate?.newStatus}</strong>? This may trigger a
               notification.
             </AlertDialogDescription>

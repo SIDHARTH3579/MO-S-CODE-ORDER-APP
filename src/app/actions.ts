@@ -1,28 +1,20 @@
 "use server";
 
 import { generateOrderUpdateEmail, OrderUpdateEmailOutput } from "@/ai/flows/order-update-email-alerts";
-import { notifyAdminOfNewOrderAction as notifyAdminOfNewOrderActionFlow, generateNewOrderEmail, NewOrderEmailOutput } from "@/ai/flows/new-order-email-alert";
+import { generateNewOrderEmail, NewOrderEmailOutput } from "@/ai/flows/new-order-email-alert";
 import { importProductsFlow } from "@/ai/flows/import-products-flow";
 import { importUsersFlow } from "@/ai/flows/import-users-flow";
-import { orders } from "@/lib/data";
+import { products as initialProducts } from "@/lib/data"; // Keep for product actions
 import { Order, OrderStatus, Product, ImportProductsOutput, User, ImportUsersOutput } from "@/types";
 import { revalidatePath } from "next/cache";
 
+// This action now only handles the AI part. The state update is done on the client.
 export async function updateOrderStatusAction(
-  orderId: string,
+  order: Order,
   newStatus: OrderStatus
 ): Promise<OrderUpdateEmailOutput | { error: string }> {
-  const order = orders.find((o) => o.id === orderId);
-
-  if (!order) {
-    return { error: "Order not found." };
-  }
-
+  
   const oldStatus = order.status;
-
-  // In a real app, you'd save this to a database.
-  // Here we just update the in-memory object.
-  order.status = newStatus;
 
   try {
     const emailResult = await generateOrderUpdateEmail({
@@ -33,18 +25,15 @@ export async function updateOrderStatusAction(
       agentName: order.userName,
       customerEmail: "customer@example.com", // Mock customer email
     });
-
-    // Revalidate the admin page to show the updated status
+    
+    // We still revalidate to ensure if there were other server-side data sources they would update.
     revalidatePath("/admin");
-    revalidatePath(`/orders/${orderId}`);
-    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath(`/orders/${order.id}`);
+    revalidatePath(`/admin/orders/${order.id}`);
     revalidatePath('/orders');
-
 
     return emailResult;
   } catch (e) {
-    // Revert status on AI failure
-    order.status = oldStatus;
     console.error("AI Flow failed:", e);
     return { error: "Failed to generate email alert." };
   }
@@ -60,6 +49,7 @@ export async function importProductsAction(csvData: string): Promise<{ products?
                 imageUrl: `https://picsum.photos/seed/${String(Math.random()).slice(2, 8)}/400/400`,
                 imageHint: 'product photo',
              }));
+             // This revalidation works because product data is still from a static file.
              revalidatePath('/admin/products');
              return { products: newProducts };
         }

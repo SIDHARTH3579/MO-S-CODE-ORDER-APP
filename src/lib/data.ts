@@ -98,5 +98,3 @@ export const products: Product[] = [
     ...getImage("prod_009"),
   },
 ];
-
-export let orders: Order[] = [];

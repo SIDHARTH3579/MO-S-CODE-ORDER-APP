@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { orders } from "@/lib/data";
+import { useOrders } from "@/hooks/use-orders";
 import {
   Card,
   CardContent,
@@ -30,6 +30,7 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function OrdersPage() {
   const { user } = useAuth();
+  const { orders } = useOrders();
   const userOrders = orders.filter((order) => order.userId === user?.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (

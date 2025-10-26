@@ -21,8 +21,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useSidebar } from "@/components/ui/sidebar";
-import { orders, users } from "@/lib/data";
-import { useToast } from "@/hooks/use-toast";
+import { useOrders } from "@/hooks/use-orders";
+import { users } from "@/lib/data";
 import { NewOrderNotification } from "../admin/components/new-order-notification";
 import { useState, useTransition } from "react";
 import { notifyAdminOfNewOrderAction } from "@/app/actions";
@@ -61,7 +61,7 @@ function CartSheet() {
     clearCart,
   } = useCart();
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { addOrder } = useOrders();
   const [isPending, startTransition] = useTransition();
 
   const handleCreateOrder = () => {
@@ -82,14 +82,9 @@ function CartSheet() {
       status: "Pending" as const,
       date: new Date().toISOString(),
     };
+    
+    addOrder(newOrder);
 
-    orders.unshift(newOrder);
-    
-    toast({
-      title: "Order Submitted!",
-      description: `Your order #${newOrder.id.split('_')[1]} has been placed.`,
-    });
-    
     // In-browser notification for admin
     localStorage.setItem('new_order_notification', JSON.stringify({
         orderId: newOrder.id,
