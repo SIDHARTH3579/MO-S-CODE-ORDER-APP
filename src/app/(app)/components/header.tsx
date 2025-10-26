@@ -63,9 +63,6 @@ function CartSheet() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [aiResult, setAiResult] = useState<NewOrderEmailOutput | null>(null);
-  const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
-
 
   const handleCreateOrder = () => {
     if (!user || cartItems.length === 0) return;
@@ -105,14 +102,7 @@ function CartSheet() {
       if (admin) {
         const result = await notifyAdminOfNewOrderAction(newOrder, admin.email);
         if ("error" in result) {
-            toast({
-                variant: "destructive",
-                title: "Failed to notify admin",
-                description: result.error
-            });
-        } else {
-            setAiResult(result);
-            setIsAiDialogOpen(true);
+            console.error("Failed to notify admin:", result.error);
         }
       }
     });
@@ -122,7 +112,6 @@ function CartSheet() {
 
 
   return (
-    <>
     <Sheet>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon" className="relative">
@@ -203,31 +192,5 @@ function CartSheet() {
         )}
       </SheetContent>
     </Sheet>
-    <Dialog open={isAiDialogOpen} onOpenChange={setIsAiDialogOpen}>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Admin Notification Sent</DialogTitle>
-                <DialogDescription>
-                    The AI has generated the following email draft to notify the admin of the new order.
-                </DialogDescription>
-            </DialogHeader>
-            {aiResult && (
-                <div className="space-y-4 text-sm">
-                    <div>
-                        <p className="font-semibold">Email Subject</p>
-                        <p className="rounded-md border bg-muted/50 p-2">{aiResult.emailSubject}</p>
-                    </div>
-                    <div>
-                        <p className="font-semibold">Email Body</p>
-                        <p className="whitespace-pre-wrap rounded-md border bg-muted/50 p-4 font-code text-xs leading-relaxed">{aiResult.emailBody}</p>
-                    </div>
-                </div>
-            )}
-            <DialogFooter>
-                <Button onClick={() => setIsAiDialogOpen(false)}>Close</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-    </>
   );
 }
