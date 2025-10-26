@@ -28,6 +28,8 @@ import { useState, useTransition } from "react";
 import { notifyAdminOfNewOrderAction } from "@/app/actions";
 import { NewOrderEmailOutput } from "@/ai/flows/new-order-email-alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 export function AppHeader() {
   const { toggleSidebar } = useSidebar();
@@ -63,14 +65,26 @@ function CartSheet() {
   const { user } = useAuth();
   const { addOrder } = useOrders();
   const [isPending, startTransition] = useTransition();
+  const [isOrderConfirmOpen, setOrderConfirmOpen] = useState(false);
+  const [shopName, setShopName] = useState("");
+  const { toast } = useToast();
 
   const handleCreateOrder = () => {
     if (!user || cartItems.length === 0) return;
+    if (!shopName.trim()) {
+        toast({
+            variant: "destructive",
+            title: "Shop Name Required",
+            description: "Please enter a name for the shop.",
+        });
+        return;
+    }
 
     const newOrder = {
       id: `ord_${String(Math.random()).slice(2, 7)}`,
       userId: user.id,
       userName: user.name,
+      shopName,
       items: cartItems.map(item => ({
         productId: item.id,
         productName: item.name,
@@ -103,89 +117,122 @@ function CartSheet() {
     });
     
     clearCart();
+    setOrderConfirmOpen(false);
+    setShopName("");
   };
 
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
-          <ShoppingCart className="h-5 w-5" />
-          {itemCount > 0 && (
-            <div className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-              {itemCount}
+    <>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="icon" className="relative">
+            <ShoppingCart className="h-5 w-5" />
+            {itemCount > 0 && (
+              <div className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                {itemCount}
+              </div>
+            )}
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="flex w-full flex-col pr-0 sm:max-w-lg">
+          <SheetHeader className="px-6">
+            <SheetTitle>Shopping Cart</SheetTitle>
+          </SheetHeader>
+          <Separator />
+          {cartItems.length > 0 ? (
+            <>
+              <div className="flex-1 overflow-y-auto">
+                <div className="flex flex-col gap-4 p-6">
+                  {cartItems.map((item) => (
+                    <div key={item.cartItemId} className="flex items-center gap-4">
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.name}
+                        width={64}
+                        height={64}
+                        className="rounded-md"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.shade ? `Shade: ${item.shade} | ` : ''}
+                          ₹{item.price.toFixed(2)}
+                        </p>
+                      </div>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateQuantity(item.cartItemId, parseInt(e.target.value))
+                        }
+                        className="w-16"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeFromCart(item.cartItemId)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <Separator />
+              <SheetFooter className="bg-secondary/50 p-6">
+                <div className="flex w-full flex-col gap-4">
+                  <div className="flex justify-between font-semibold">
+                    <span>Subtotal</span>
+                    <span>₹{cartTotal.toFixed(2)}</span>
+                  </div>
+                  <Button className="w-full" onClick={() => setOrderConfirmOpen(true)} disabled={isPending || cartItems.length === 0}>
+                    Create Order
+                  </Button>
+                </div>
+              </SheetFooter>
+            </>
+          ) : (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+              <ShoppingCart className="h-16 w-16 text-muted-foreground" />
+              <h3 className="text-xl font-semibold">Your cart is empty</h3>
+              <p className="text-muted-foreground">
+                Add some products to get started.
+              </p>
             </div>
           )}
-        </Button>
-      </SheetTrigger>
-      <SheetContent className="flex w-full flex-col pr-0 sm:max-w-lg">
-        <SheetHeader className="px-6">
-          <SheetTitle>Shopping Cart</SheetTitle>
-        </SheetHeader>
-        <Separator />
-        {cartItems.length > 0 ? (
-          <>
-            <div className="flex-1 overflow-y-auto">
-              <div className="flex flex-col gap-4 p-6">
-                {cartItems.map((item) => (
-                  <div key={item.cartItemId} className="flex items-center gap-4">
-                    <Image
-                      src={item.imageUrl}
-                      alt={item.name}
-                      width={64}
-                      height={64}
-                      className="rounded-md"
+        </SheetContent>
+      </Sheet>
+
+      <Dialog open={isOrderConfirmOpen} onOpenChange={setOrderConfirmOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirm Order</DialogTitle>
+                <DialogDescription>
+                    Please enter the shop name to finalize this order.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="shop-name" className="text-right">Shop Name</Label>
+                    <Input 
+                        id="shop-name" 
+                        value={shopName} 
+                        onChange={(e) => setShopName(e.target.value)} 
+                        className="col-span-3"
+                        placeholder="Enter the shop's name"
                     />
-                    <div className="flex-1">
-                      <p className="font-medium">{item.name}</p>
-                       <p className="text-sm text-muted-foreground">
-                        {item.shade ? `Shade: ${item.shade} | ` : ''}
-                        ₹{item.price.toFixed(2)}
-                      </p>
-                    </div>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        updateQuantity(item.cartItemId, parseInt(e.target.value))
-                      }
-                      className="w-16"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeFromCart(item.cartItemId)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <Separator />
-            <SheetFooter className="bg-secondary/50 p-6">
-              <div className="flex w-full flex-col gap-4">
-                <div className="flex justify-between font-semibold">
-                  <span>Subtotal</span>
-                  <span>₹{cartTotal.toFixed(2)}</span>
                 </div>
-                <Button className="w-full" onClick={handleCreateOrder} disabled={isPending}>
-                  {isPending ? <Loader2 className="animate-spin" /> : 'Create Order'}
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setOrderConfirmOpen(false)}>Cancel</Button>
+                <Button onClick={handleCreateOrder} disabled={isPending}>
+                     {isPending ? <Loader2 className="animate-spin" /> : 'Submit Order'}
                 </Button>
-              </div>
-            </SheetFooter>
-          </>
-        ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-            <ShoppingCart className="h-16 w-16 text-muted-foreground" />
-            <h3 className="text-xl font-semibold">Your cart is empty</h3>
-            <p className="text-muted-foreground">
-              Add some products to get started.
-            </p>
-          </div>
-        )}
-      </SheetContent>
-    </Sheet>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

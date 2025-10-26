@@ -46,6 +46,7 @@ export default function OrdersPage() {
                 <TableRow>
                     <TableHead>Order ID</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Shop Name</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead className="w-[100px]"></TableHead>
@@ -57,6 +58,7 @@ export default function OrdersPage() {
                     <TableRow key={order.id}>
                         <TableCell className="font-medium">#{order.id.split('_')[1]}</TableCell>
                         <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{order.shopName}</TableCell>
                         <TableCell>
                         <Badge
                             className={statusColors[order.status]}
@@ -76,7 +78,7 @@ export default function OrdersPage() {
                     ))
                 ) : (
                     <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                         No orders found.
                     </TableCell>
                     </TableRow>

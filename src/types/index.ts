@@ -37,6 +37,7 @@ export type Order = {
   id: string;
   userId: string;
   userName: string;
+  shopName: string;
   items: OrderItem[];
   total: number;
   status: OrderStatus;

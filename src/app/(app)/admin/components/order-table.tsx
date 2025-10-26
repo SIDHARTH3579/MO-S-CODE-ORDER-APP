@@ -115,6 +115,7 @@ export function OrderTable({ initialOrders }: { orders: Order[] }) {
           <TableRow>
             <TableHead>Order ID</TableHead>
             <TableHead>Agent</TableHead>
+            <TableHead>Shop Name</TableHead>
             <TableHead>Date</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead>Current Status</TableHead>
@@ -127,6 +128,7 @@ export function OrderTable({ initialOrders }: { orders: Order[] }) {
             <TableRow key={order.id}>
               <TableCell className="font-medium">#{order.id.split('_')[1]}</TableCell>
               <TableCell>{order.userName}</TableCell>
+              <TableCell>{order.shopName}</TableCell>
               <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
               <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
               <TableCell>

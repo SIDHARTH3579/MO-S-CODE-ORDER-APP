@@ -17,7 +17,7 @@ import {
 import type { Order, OrderItem, OrderStatus } from "@/types";
 import Image from "next/image";
 import Link from 'next/link';
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const statusColors: Record<OrderStatus, string> = {
@@ -126,11 +126,14 @@ export default function OrderDetailPage() {
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle>Customer</CardTitle>
+                    <CardTitle>Agent & Shop</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p className="font-medium">{order.userName}</p>
-                    {/* In a real app, customer details would be more extensive */}
+                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Building className="h-4 w-4" />
+                        <span>{order.shopName}</span>
+                    </div>
                 </CardContent>
             </Card>
         </div>
