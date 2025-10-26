@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useTransition } from 'react'
 import { users as initialUsers } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, MoreHorizontal } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Upload, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -35,18 +35,22 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogDescription
+    DialogDescription,
+    DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from '@/components/ui/badge';
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { UserForm } from './components/user-form';
+import { Input } from '@/components/ui/input';
+import { importUsersAction } from '@/app/actions';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | undefined>(undefined);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isImporting, startImportTransition] = useTransition();
   const { toast } = useToast();
 
   const handleDeleteUser = () => {
@@ -94,6 +98,35 @@ export default function AdminUsersPage() {
     setUserToEdit(undefined);
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const content = e.target?.result as string;
+        startImportTransition(async () => {
+            const result = await importUsersAction(content);
+            if (result.error) {
+                toast({
+                    variant: "destructive",
+                    title: "Import Failed",
+                    description: result.error,
+                });
+            } else {
+                // Here you would merge new users, for simplicity we replace them
+                setUsers(result.users!);
+                initialUsers.splice(0, initialUsers.length, ...result.users!);
+                toast({
+                    title: "Import Successful",
+                    description: `${result.users?.length} users have been imported.`,
+                });
+            }
+        });
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="container mx-auto">
       <div className="mb-8 flex items-center justify-between">
@@ -101,9 +134,35 @@ export default function AdminUsersPage() {
           <h1 className="text-3xl font-bold tracking-tight font-headline">Manage Users</h1>
           <p className="text-muted-foreground">Control user roles and access permissions.</p>
         </div>
-        <Button onClick={() => {setUserToEdit(undefined); setIsFormOpen(true);}}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add User
-        </Button>
+        <div className="flex gap-2">
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                        <Upload className="mr-2 h-4 w-4" /> Import Users
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Import Users</DialogTitle>
+                        <DialogDescription>
+                            Bulk-upload users from a CSV file. The file should have `name`, `email`, and `role` columns.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 text-sm space-y-4">
+                       <Input type="file" accept=".csv" onChange={handleFileChange} disabled={isImporting} />
+                       {isImporting && (
+                           <div className="flex items-center text-muted-foreground">
+                               <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                               Processing file, please wait...
+                           </div>
+                       )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+            <Button onClick={() => {setUserToEdit(undefined); setIsFormOpen(true);}}>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add User
+            </Button>
+        </div>
       </div>
        <Card>
         <CardHeader>

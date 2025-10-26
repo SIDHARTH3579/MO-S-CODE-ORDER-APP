@@ -2,8 +2,9 @@
 
 import { generateOrderUpdateEmail, OrderUpdateEmailOutput } from "@/ai/flows/order-update-email-alerts";
 import { importProductsFlow } from "@/ai/flows/import-products-flow";
+import { importUsersFlow } from "@/ai/flows/import-users-flow";
 import { orders } from "@/lib/data";
-import { Order, OrderStatus, Product, ImportProductsOutput } from "@/types";
+import { Order, OrderStatus, Product, ImportProductsOutput, User, ImportUsersOutput } from "@/types";
 import { revalidatePath } from "next/cache";
 
 export async function updateOrderStatusAction(
@@ -64,6 +65,24 @@ export async function importProductsAction(csvData: string): Promise<{ products?
         return { error: "Failed to parse products from file." };
     } catch(e) {
         console.error("Import products flow failed:", e);
+        return { error: "An unexpected error occurred during import." };
+    }
+}
+
+export async function importUsersAction(csvData: string): Promise<{ users?: User[], error?: string }> {
+    try {
+        const result: ImportUsersOutput = await importUsersFlow({ csvData });
+        if (result.users) {
+             const newUsers: User[] = result.users.map(u => ({
+                ...u,
+                id: `user_${String(Math.random()).slice(2, 8)}`,
+             }));
+             revalidatePath('/admin/users');
+             return { users: newUsers };
+        }
+        return { error: "Failed to parse users from file." };
+    } catch(e) {
+        console.error("Import users flow failed:", e);
         return { error: "An unexpected error occurred during import." };
     }
 }

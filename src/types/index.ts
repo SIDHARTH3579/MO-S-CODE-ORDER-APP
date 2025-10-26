@@ -73,3 +73,20 @@ export const ImportProductsOutputSchema = z.object({
   products: z.array(ProductImportSchema).describe('An array of successfully parsed product objects.'),
 });
 export type ImportProductsOutput = z.infer<typeof ImportProductsOutputSchema>;
+
+// Schema for AI flow to import users
+export const ImportUsersInputSchema = z.object({
+  csvData: z.string().describe('The full CSV content as a string.'),
+});
+export type ImportUsersInput = z.infer<typeof ImportUsersInputSchema>;
+
+const UserImportSchema = z.object({
+    name: z.string().describe('The name of the user.'),
+    email: z.string().email().describe('The email address of the user.'),
+    role: z.enum(["agent", "admin"]).describe('The role of the user, must be "agent" or "admin".'),
+});
+
+export const ImportUsersOutputSchema = z.object({
+  users: z.array(UserImportSchema).describe('An array of successfully parsed user objects.'),
+});
+export type ImportUsersOutput = z.infer<typeof ImportUsersOutputSchema>;
